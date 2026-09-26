@@ -1,6 +1,6 @@
 # SPEC 02 — Listado y filtro de libros
 
-> **Status:** Draft
+> **Status:** Aprobado
 > **Depends on:** [[00-base-firebase-googlebooks]]
 > **Date:** 2026-09-26
 > **Objective:** Pantalla que lista todos los libros dados de alta, con su balda/columna, y permite filtrar en cliente por título y por autor.
@@ -40,8 +40,8 @@ mi-biblio/
 
 ## Acceptance criteria
 
-- [ ] El listado muestra todos los libros de la colección `libros`, incluyendo balda y columna.
-- [ ] Escribir texto en el filtro de título reduce el listado a los libros cuyo título contiene ese texto (sin distinguir mayúsculas/minúsculas).
+- [ ] El listado muestra todos los libros de la colección `libros`, incluyendo balda y columna. Si no tiene posicion que este 'sin colocar'
+- [ ] Escribir texto en el filtro de título reduce el listado a los libros cuyo título contiene ese texto (sin distinguir mayúsculas/minúsculas). Utilizar algo como debounce
 - [ ] Escribir texto en el filtro de autor reduce el listado a los libros cuyo autor contiene ese texto.
 
 ---
