@@ -1,6 +1,6 @@
 # SPEC 00 — Base: Firebase, Google Books y modelo de datos
 
-> **Status:** Draft
+> **Status:** Implementado
 > **Depends on:** ninguno
 > **Date:** 2026-09-26
 > **Objective:** Dejar lista la base técnica compartida por el resto de specs: proyecto Firebase con Firestore, librería de normalización de Google Books, modelo de datos de `libros`/`config/estanteria` y reglas de acceso. Sin pantallas propias.
