@@ -1,69 +1,173 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import { Lora, IBM_Plex_Mono } from "next/font/google";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+const lora = Lora({ subsets: ["latin"], weight: ["500", "600"] });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"] });
+
+type Libro = {
+  id: string;
+  titulo: string;
+  autor: string;
+  portada: string;
+  balda: number | null;
+  columna: number | null;
+};
+
+type EstadoCarga = "cargando" | "listo" | "error";
+
+function useDebounced(valor: string, retrasoMs: number) {
+  const [debounced, setDebounced] = useState(valor);
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(valor), retrasoMs);
+    return () => clearTimeout(id);
+  }, [valor, retrasoMs]);
+
+  return debounced;
+}
+
+function ubicacion(balda: number | null, columna: number | null) {
+  if (balda === null && columna === null) return "sin colocar";
+  return `Balda ${balda ?? "?"} · Columna ${columna ?? "?"}`;
+}
+
+export default function ListadoLibrosPage() {
+  const [libros, setLibros] = useState<Libro[]>([]);
+  const [estadoCarga, setEstadoCarga] = useState<EstadoCarga>("cargando");
+
+  const [filtroTitulo, setFiltroTitulo] = useState("");
+  const [filtroAutor, setFiltroAutor] = useState("");
+  const tituloDebounced = useDebounced(filtroTitulo, 300);
+  const autorDebounced = useDebounced(filtroAutor, 300);
+
+  useEffect(() => {
+    async function cargar() {
+      try {
+        const snapshot = await getDocs(collection(db, "libros"));
+        setLibros(
+          snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              titulo: data.titulo ?? "",
+              autor: data.autor ?? "",
+              portada: data.portada ?? "",
+              balda: data.balda ?? null,
+              columna: data.columna ?? null,
+            };
+          })
+        );
+        setEstadoCarga("listo");
+      } catch {
+        setEstadoCarga("error");
+      }
+    }
+    cargar();
+  }, []);
+
+  const librosFiltrados = libros.filter((libro) => {
+    const coincideTitulo = libro.titulo
+      .toLowerCase()
+      .includes(tituloDebounced.trim().toLowerCase());
+    const coincideAutor = libro.autor
+      .toLowerCase()
+      .includes(autorDebounced.trim().toLowerCase());
+    return coincideTitulo && coincideAutor;
+  });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div
+      className={`${plexMono.className} flex flex-1 justify-center bg-[#E3DFD3] px-4 py-12`}
+    >
+      <div className="w-full max-w-2xl">
+        <div className="mb-6 flex items-baseline justify-between border-b-2 border-[#8C3B2E]/40 pb-3">
+          <h1 className={`${lora.className} text-xl font-semibold text-[#2B2A28]`}>
+            Mi biblioteca
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+          <span className="text-[10px] tracking-wide text-[#8C3B2E]/70">
+            {estadoCarga === "listo" ? `${librosFiltrados.length} de ${libros.length}` : ""}
+          </span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+
+        <div className="mb-6 flex gap-4 border border-[#C9BFA5] bg-[#F7F4EC] p-3">
+          <div className="flex-1">
+            <label className="mb-1 block text-xs text-[#5B5748]" htmlFor="filtro-titulo">
+              Título
+            </label>
+            <input
+              id="filtro-titulo"
+              type="text"
+              value={filtroTitulo}
+              onChange={(e) => setFiltroTitulo(e.target.value)}
+              placeholder="Buscar por título"
+              className="w-full border-b border-[#C9BFA5] bg-transparent py-1 text-sm text-[#2B2A28] outline-none focus:border-[#2F4858]"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+          <div className="flex-1">
+            <label className="mb-1 block text-xs text-[#5B5748]" htmlFor="filtro-autor">
+              Autor
+            </label>
+            <input
+              id="filtro-autor"
+              type="text"
+              value={filtroAutor}
+              onChange={(e) => setFiltroAutor(e.target.value)}
+              placeholder="Buscar por autor"
+              className="w-full border-b border-[#C9BFA5] bg-transparent py-1 text-sm text-[#2B2A28] outline-none focus:border-[#2F4858]"
+            />
+          </div>
         </div>
-      </main>
+
+        {estadoCarga === "cargando" && (
+          <p className="text-center text-xs text-[#9A927C]">Cargando la estantería…</p>
+        )}
+        {estadoCarga === "error" && (
+          <p className="text-center text-xs text-[#8C3B2E]">
+            No se pudo cargar la biblioteca. Inténtalo de nuevo más tarde.
+          </p>
+        )}
+        {estadoCarga === "listo" && librosFiltrados.length === 0 && (
+          <p className="text-center text-xs text-[#9A927C]">
+            {libros.length === 0
+              ? "Todavía no hay libros dados de alta."
+              : "Ningún libro coincide con el filtro."}
+          </p>
+        )}
+
+        {estadoCarga === "listo" && librosFiltrados.length > 0 && (
+          <ul className="divide-y divide-[#C9BFA5] border border-[#C9BFA5] bg-[#F7F4EC]">
+            {librosFiltrados.map((libro) => (
+              <li key={libro.id} className="flex items-center gap-4 p-3">
+                {libro.portada ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={libro.portada}
+                    alt=""
+                    className="h-16 w-11 shrink-0 border border-[#C9BFA5] object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-11 shrink-0 items-center justify-center border border-dashed border-[#C9BFA5] text-center text-[8px] leading-tight text-[#9A927C]">
+                    sin portada
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className={`${lora.className} truncate text-sm font-semibold text-[#2B2A28]`}>
+                    {libro.titulo || "Sin título"}
+                  </p>
+                  <p className="truncate text-xs text-[#5B5748]">{libro.autor || "Autor desconocido"}</p>
+                </div>
+                <span className="shrink-0 text-[10px] tracking-wide text-[#2F4858]">
+                  {ubicacion(libro.balda, libro.columna)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
