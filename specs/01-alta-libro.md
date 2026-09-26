@@ -1,6 +1,6 @@
 # SPEC 01 — Alta de libro con autocompletado
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** [[00-base-firebase-googlebooks]]
 > **Date:** 2026-09-26
 > **Objective:** Pantalla para dar de alta un libro con autocompletado desde Google Books, indicando su balda/columna en la librería del salón.

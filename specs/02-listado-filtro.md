@@ -61,3 +61,12 @@ mi-biblio/
 - Ordenación configurable.
 
 Cada uno de estos, si se implementa, va en su propio spec.
+
+---
+
+## Backlog (pendiente de definir en una futura revisión de esta spec)
+
+Ideas surgidas durante la implementación de [[01-alta-libro]], anotadas aquí porque requieren consultar el listado de libros existentes (o encajan de forma natural con esta pantalla):
+
+- **Aviso de título duplicado al dar de alta un libro:** si el título ya existe en la colección `libros`, avisar al usuario antes de guardar e indicar dónde está ubicado el ejemplar existente (balda/columna), si las tiene.
+- **Al borrar el campo Editorial en el alta, borrar también el ISBN automáticamente.**
