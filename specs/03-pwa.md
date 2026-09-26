@@ -1,6 +1,6 @@
 # SPEC 03 — PWA instalable
 
-> **Status:** Draft
+> **Status:** Implementado
 > **Depends on:** [[02-listado-filtro]]
 > **Date:** 2026-09-26
 > **Objective:** Hacer la app instalable desde el móvil como PWA (manifest + service worker básico), para que el listado de libros ([[02-listado-filtro]]) sea lo primero usable en modo standalone.
@@ -59,7 +59,14 @@ mi-biblio/
 
 ---
 
+## Verificación manual (2026-09-26)
+
+- Instalación desde móvil y modo standalone: **OK**. Probado vía túnel HTTPS temporal (cloudflared) contra el servidor local; se instala en pantalla de inicio y abre sin barra de direcciones.
+- Chrome DevTools > Application > Manifest: **OK**, sin errores.
+- **Pendiente fuera del alcance de esta spec:** al entrar por el dominio del túnel (`*.trycloudflare.com`), el listado de libros no carga (Firestore no devuelve datos) tanto en móvil como en el propio PC entrando por esa misma URL. En `localhost:3000` sí carga correctamente. Causa más probable: restricción de HTTP referrers en la API key de Firebase (Google Cloud Console > APIs & Services > Credentials), que solo permite `localhost` y el dominio de producción, no dominios de túnel temporales. No es un bug de la PWA (manifest/service worker); queda para revisar aparte cuando se necesite probar con datos reales desde un dominio distinto a los ya autorizados.
+
 ## What is **not** in this spec
+
 
 - Notificaciones push.
 - Sincronización offline de escritura.
