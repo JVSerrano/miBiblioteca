@@ -1,6 +1,6 @@
 # SPEC 02 — Listado y filtro de libros
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** [[00-base-firebase-googlebooks]]
 > **Date:** 2026-09-26
 > **Objective:** Pantalla que lista todos los libros dados de alta, con su balda/columna, y permite filtrar en cliente por título y por autor.
