@@ -37,8 +37,10 @@ function extraerIsbn(identifiers?: GoogleBooksIndustryIdentifier[]): string {
   return isbn10?.identifier ?? "";
 }
 
-export async function buscarLibro(query: string): Promise<LibroNormalizado | null> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY;
+export async function buscarLibroConClave(
+  query: string,
+  apiKey: string | undefined
+): Promise<LibroNormalizado | null> {
   const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&key=${apiKey}`;
 
   const res = await fetch(url);
@@ -59,4 +61,8 @@ export async function buscarLibro(query: string): Promise<LibroNormalizado | nul
     isbn: extraerIsbn(info.industryIdentifiers),
     portada: info.imageLinks?.thumbnail ?? "",
   };
+}
+
+export async function buscarLibro(query: string): Promise<LibroNormalizado | null> {
+  return buscarLibroConClave(query, process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY);
 }

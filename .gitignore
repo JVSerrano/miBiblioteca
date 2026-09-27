@@ -37,6 +37,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# script de importación (spec 04): credenciales y datos reales
+/scripts/*.json
+!/scripts/import-data.example.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
