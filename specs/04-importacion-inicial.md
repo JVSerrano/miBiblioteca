@@ -1,6 +1,6 @@
 # SPEC 04 — Script de importación inicial
 
-> **Status:** Draft
+> **Status:** Implementado
 > **Depends on:** [[00-base-firebase-googlebooks]]
 > **Date:** 2026-09-26
 > **Objective:** Script de un solo uso para cargar el inventario inicial de libros en Firestore, reutilizando la misma lógica de normalización de Google Books que el resto de la app.
@@ -38,7 +38,7 @@ mi-biblio/
 
 ## Acceptance criteria
 
-- [ ] `npx tsx scripts/importar.ts` con un JSON de prueba crea los documentos correspondientes en Firestore con los datos de Google Books completados.
+- [x] `npx tsx scripts/importar.ts` con un JSON de prueba crea los documentos correspondientes en Firestore con los datos de Google Books completados.
 
 ---
 
