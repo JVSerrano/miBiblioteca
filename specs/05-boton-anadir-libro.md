@@ -1,6 +1,6 @@
 # SPEC 05 — Botón de añadir libro en el listado
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** [[01-alta-libro]], [[02-listado-filtro]]
 > **Date:** 2026-09-28
 > **Objective:** Añadir un botón visible en la pantalla de listado que lleve al formulario de alta de libro (`/nuevo`).
