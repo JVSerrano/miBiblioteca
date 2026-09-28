@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Lora, IBM_Plex_Mono } from "next/font/google";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -84,13 +85,16 @@ export default function ListadoLibrosPage() {
       className={`${plexMono.className} flex flex-1 justify-center bg-[#E3DFD3] px-4 py-12`}
     >
       <div className="w-full max-w-2xl">
-        <div className="mb-6 flex items-baseline justify-between border-b-2 border-[#8C3B2E]/40 pb-3">
+        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3 border-b-2 border-[#8C3B2E]/40 pb-3">
           <h1 className={`${lora.className} text-xl font-semibold text-[#2B2A28]`}>
             Mi biblioteca
           </h1>
-          <span className="text-[10px] tracking-wide text-[#8C3B2E]/70">
-            {estadoCarga === "listo" ? `${librosFiltrados.length} de ${libros.length}` : ""}
-          </span>
+          <Link
+            href="/nuevo"
+            className="shrink-0 border border-[#8C3B2E] px-2 py-1 text-xs text-[#8C3B2E] transition-colors hover:bg-[#8C3B2E] hover:text-[#F7F4EC]"
+          >
+            + Añadir libro
+          </Link>
         </div>
 
         <div className="mb-6 flex gap-4 border border-[#C9BFA5] bg-[#F7F4EC] p-3">

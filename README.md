@@ -18,6 +18,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+> **Importante:** Next.js solo lee `.env.local` al arrancar el servidor. Si creas o modificas esas variables (por ejemplo las de Firebase) con `npm run dev` ya en marcha, reinicia el proceso (`Ctrl+C` y `npm run dev` de nuevo) o los cambios no se aplicarán y verás errores de carga de datos aunque la configuración sea correcta.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
