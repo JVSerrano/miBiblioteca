@@ -142,12 +142,20 @@ export default function ListadoLibrosPage() {
               Mi biblioteca
             </button>
           </h1>
-          <Link
-            href="/nuevo"
-            className="shrink-0 border border-[#8C3B2E] px-2 py-1 text-xs text-[#8C3B2E] transition-colors hover:bg-[#8C3B2E] hover:text-[#F7F4EC]"
-          >
-            + Añadir libro
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/volcado"
+              className="shrink-0 border border-[#2F4858] px-2 py-1 text-xs text-[#2F4858] transition-colors hover:bg-[#2F4858] hover:text-[#F7F4EC]"
+            >
+              Dictar varios
+            </Link>
+            <Link
+              href="/nuevo"
+              className="shrink-0 border border-[#8C3B2E] px-2 py-1 text-xs text-[#8C3B2E] transition-colors hover:bg-[#8C3B2E] hover:text-[#F7F4EC]"
+            >
+              + Añadir libro
+            </Link>
+          </div>
         </div>
 
         <div className="mb-6 flex gap-4 border border-[#C9BFA5] bg-[#F7F4EC] p-3">
