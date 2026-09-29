@@ -231,7 +231,7 @@ export default function ListadoLibrosPage() {
                   {accionesVisibles ? (
                   <div className="flex shrink-0 items-center gap-2">
                     <Link
-                      href={`/editar/${libro.id}`}
+                      href={`/editar?id=${libro.id}`}
                       className="border border-[#2F4858] px-2 py-1 text-[10px] text-[#2F4858] transition-colors hover:bg-[#2F4858] hover:text-[#F7F4EC]"
                     >
                       Editar

@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# id del proyecto Firebase (spec 07): se configura en local con `firebase use --add`
+/.firebaserc

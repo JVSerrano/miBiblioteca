@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Lora, IBM_Plex_Mono } from "next/font/google";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -15,12 +15,7 @@ type EstadoBusqueda = "inactivo" | "buscando" | "encontrado" | "sin-resultado" |
 type EstadoGuardado = "inactivo" | "guardando" | "guardado" | "error";
 type EstadoCarga = "cargando" | "listo" | "error";
 
-export default function EditarLibroPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+function EditarLibroForm({ id }: { id: string }) {
   const router = useRouter();
 
   const [estadoCarga, setEstadoCarga] = useState<EstadoCarga>("cargando");
@@ -286,5 +281,39 @@ export default function EditarLibroPage({
         )}
       </form>
     </div>
+  );
+}
+
+function EditarLibroContenido() {
+  const id = useSearchParams().get("id");
+
+  if (!id) {
+    return (
+      <div
+        className={`${plexMono.className} flex flex-1 items-center justify-center bg-[#E3DFD3] px-4 py-12`}
+      >
+        <p className="text-xs text-[#8C3B2E]">
+          No se pudo cargar el libro. Puede que ya no exista.
+        </p>
+      </div>
+    );
+  }
+
+  return <EditarLibroForm id={id} />;
+}
+
+export default function EditarLibroPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          className={`${plexMono.className} flex flex-1 items-center justify-center bg-[#E3DFD3] px-4 py-12`}
+        >
+          <p className="text-xs text-[#9A927C]">Cargando el libro…</p>
+        </div>
+      }
+    >
+      <EditarLibroContenido />
+    </Suspense>
   );
 }
