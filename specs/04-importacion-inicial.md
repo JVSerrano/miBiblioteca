@@ -36,6 +36,10 @@ mi-biblio/
 
 ---
 
+> **Nota (2026-09-29):** el script acepta además un campo opcional `autor` para mejorar la búsqueda. El procedimiento completo para cargar libros desde un archivo está en `docs/carga-masiva-desde-archivo.md`.
+
+---
+
 ## Acceptance criteria
 
 - [x] `npx tsx scripts/importar.ts` con un JSON de prueba crea los documentos correspondientes en Firestore con los datos de Google Books completados.
