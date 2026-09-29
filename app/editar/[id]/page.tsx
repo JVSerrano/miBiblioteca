@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lora, IBM_Plex_Mono } from "next/font/google";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { buscarLibro } from "@/lib/googleBooks";
 
@@ -12,8 +13,18 @@ const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"] });
 
 type EstadoBusqueda = "inactivo" | "buscando" | "encontrado" | "sin-resultado" | "error";
 type EstadoGuardado = "inactivo" | "guardando" | "guardado" | "error";
+type EstadoCarga = "cargando" | "listo" | "error";
 
-export default function NuevoLibroPage() {
+export default function EditarLibroPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const router = useRouter();
+
+  const [estadoCarga, setEstadoCarga] = useState<EstadoCarga>("cargando");
+
   const [titulo, setTitulo] = useState("");
   const [autor, setAutor] = useState("");
   const [editorial, setEditorial] = useState("");
@@ -24,6 +35,30 @@ export default function NuevoLibroPage() {
 
   const [estadoBusqueda, setEstadoBusqueda] = useState<EstadoBusqueda>("inactivo");
   const [estadoGuardado, setEstadoGuardado] = useState<EstadoGuardado>("inactivo");
+
+  useEffect(() => {
+    async function cargar() {
+      try {
+        const snapshot = await getDoc(doc(db, "libros", id));
+        if (!snapshot.exists()) {
+          setEstadoCarga("error");
+          return;
+        }
+        const data = snapshot.data();
+        setTitulo(data.titulo ?? "");
+        setAutor(data.autor ?? "");
+        setEditorial(data.editorial ?? "");
+        setIsbn(data.isbn ?? "");
+        setPortada(data.portada ?? "");
+        setBalda(data.balda != null ? String(data.balda) : "");
+        setColumna(data.columna != null ? String(data.columna) : "");
+        setEstadoCarga("listo");
+      } catch {
+        setEstadoCarga("error");
+      }
+    }
+    cargar();
+  }, [id]);
 
   async function handleBuscar() {
     if (!titulo.trim()) return;
@@ -51,7 +86,7 @@ export default function NuevoLibroPage() {
 
     setEstadoGuardado("guardando");
     try {
-      await addDoc(collection(db, "libros"), {
+      await updateDoc(doc(db, "libros", id), {
         titulo: titulo.trim(),
         autor,
         editorial,
@@ -59,20 +94,34 @@ export default function NuevoLibroPage() {
         portada,
         balda: balda.trim() ? Number(balda) : null,
         columna: columna.trim() ? Number(columna) : null,
-        fechaAlta: serverTimestamp(),
       });
       setEstadoGuardado("guardado");
-      setTitulo("");
-      setAutor("");
-      setEditorial("");
-      setIsbn("");
-      setPortada("");
-      setBalda("");
-      setColumna("");
-      setEstadoBusqueda("inactivo");
+      router.push("/");
     } catch {
       setEstadoGuardado("error");
     }
+  }
+
+  if (estadoCarga === "cargando") {
+    return (
+      <div
+        className={`${plexMono.className} flex flex-1 items-center justify-center bg-[#E3DFD3] px-4 py-12`}
+      >
+        <p className="text-xs text-[#9A927C]">Cargando el libro…</p>
+      </div>
+    );
+  }
+
+  if (estadoCarga === "error") {
+    return (
+      <div
+        className={`${plexMono.className} flex flex-1 items-center justify-center bg-[#E3DFD3] px-4 py-12`}
+      >
+        <p className="text-xs text-[#8C3B2E]">
+          No se pudo cargar el libro. Puede que ya no exista.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -91,7 +140,7 @@ export default function NuevoLibroPage() {
             Mi biblioteca
           </Link>
           <span className="text-[10px] tracking-wide text-[#8C3B2E]/70">
-            ficha nueva
+            editar ficha
           </span>
         </div>
 
@@ -224,14 +273,9 @@ export default function NuevoLibroPage() {
           disabled={!titulo.trim() || estadoGuardado === "guardando"}
           className="w-full border-2 border-[#2F4858] bg-[#2F4858] py-2 text-sm font-medium tracking-wide text-[#F7F4EC] transition-colors hover:bg-[#25394544] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {estadoGuardado === "guardando" ? "Guardando…" : "Guardar en la balda"}
+          {estadoGuardado === "guardando" ? "Guardando…" : "Guardar cambios"}
         </button>
 
-        {estadoGuardado === "guardado" && (
-          <p className="mt-3 text-center text-xs text-[#2F4858]">
-            Libro archivado. Ya puedes dar de alta el siguiente.
-          </p>
-        )}
         {estadoGuardado === "error" && (
           <p className="mt-3 text-center text-xs text-[#8C3B2E]">
             No se pudo guardar. Inténtalo de nuevo.
