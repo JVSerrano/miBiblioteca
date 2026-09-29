@@ -216,7 +216,10 @@ export default function EditarLibroPage({
                 id="editorial"
                 type="text"
                 value={editorial}
-                onChange={(e) => setEditorial(e.target.value)}
+                onChange={(e) => {
+                  setEditorial(e.target.value);
+                  setIsbn("");
+                }}
                 className="w-full border-b border-[#C9BFA5] bg-transparent py-1 text-sm text-[#2B2A28] outline-none focus:border-[#2F4858]"
               />
             </div>
