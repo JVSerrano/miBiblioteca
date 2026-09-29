@@ -1,5 +1,5 @@
-const CACHE_NAME = "mi-biblio-cache-v1";
-const ASSETS_TO_CACHE = ["/", "/manifest.webmanifest", "/favicon.ico"];
+const CACHE_NAME = "mi-biblio-cache-v2";
+const ASSETS_TO_CACHE = ["/", "/manifest.webmanifest", "/icon-192.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

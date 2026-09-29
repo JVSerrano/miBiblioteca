@@ -134,7 +134,13 @@ export default function ListadoLibrosPage() {
       <div className="w-full max-w-2xl">
         <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3 border-b-2 border-[#8C3B2E]/40 pb-3">
           <h1 className={`${lora.className} text-xl font-semibold text-[#2B2A28]`}>
-            Mi biblioteca
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="cursor-pointer"
+            >
+              Mi biblioteca
+            </button>
           </h1>
           <Link
             href="/nuevo"
@@ -204,7 +210,7 @@ export default function ListadoLibrosPage() {
                   onMouseLeave={() => {
                     if (filaActiva === libro.id) setFilaActiva(null);
                   }}
-                  className="relative flex items-center gap-4 p-3"
+                  className="relative flex items-center gap-3 px-3 pb-2 pt-3"
                 >
                   {libro.portada ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -222,11 +228,13 @@ export default function ListadoLibrosPage() {
                     <p className={`${lora.className} truncate text-sm font-semibold text-[#2B2A28]`}>
                       {libro.titulo || "Sin título"}
                     </p>
-                    <p className="truncate text-xs text-[#5B5748]">{libro.autor || "Autor desconocido"}</p>
+                    <div className="mt-0.5 flex items-baseline justify-between gap-2">
+                      <p className="min-w-0 truncate text-xs text-[#5B5748]">{libro.autor || "Autor desconocido"}</p>
+                      <span className="shrink-0 text-[10px] tracking-wide text-[#2F4858]">
+                        {ubicacion(libro.balda, libro.columna)}
+                      </span>
+                    </div>
                   </div>
-                  <span className="shrink-0 text-[10px] tracking-wide text-[#2F4858]">
-                    {ubicacion(libro.balda, libro.columna)}
-                  </span>
 
                   {accionesVisibles ? (
                   <div className="flex shrink-0 items-center gap-2">
