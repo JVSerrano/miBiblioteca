@@ -47,3 +47,6 @@ next-env.d.ts
 
 # id del proyecto Firebase (spec 07): se configura en local con `firebase use --add`
 /.firebaserc
+
+# cache de despliegue de Firebase Hosting
+/.firebase/
