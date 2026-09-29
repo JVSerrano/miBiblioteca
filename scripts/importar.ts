@@ -11,10 +11,11 @@ process.loadEnvFile(".env.local");
 import { readFileSync } from "node:fs";
 import { cert, initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { buscarLibroConClave } from "../lib/googleBooks";
+import { buscarLibroConAutorConClave, buscarLibroConClave } from "../lib/googleBooks";
 
 interface LibroEntrada {
   titulo: string;
+  autor?: string;
   balda: number | null;
   columna: number | null;
 }
@@ -38,7 +39,14 @@ async function main() {
     console.log(`Importando: ${entrada.titulo}`);
     let datosGoogle;
     try {
-      datosGoogle = await buscarLibroConClave(entrada.titulo, apiKey);
+      // Con autor la búsqueda es mucho más fiable; si no da nada, se cae a solo título.
+      datosGoogle = entrada.autor
+        ? await buscarLibroConAutorConClave(entrada.titulo, entrada.autor, apiKey)
+        : null;
+      if (!datosGoogle) {
+        if (entrada.autor) console.warn(`  Sin coincidencia con autor "${entrada.autor}", busco solo por título.`);
+        datosGoogle = await buscarLibroConClave(entrada.titulo, apiKey);
+      }
     } catch (error) {
       console.error(`  Google Books falló para "${entrada.titulo}": ${error}`);
       datosGoogle = null;
@@ -46,7 +54,7 @@ async function main() {
 
     await db.collection("libros").add({
       titulo: datosGoogle?.titulo || entrada.titulo,
-      autor: datosGoogle?.autor ?? "",
+      autor: datosGoogle?.autor || entrada.autor || "",
       editorial: datosGoogle?.editorial ?? "",
       isbn: datosGoogle?.isbn ?? "",
       portada: datosGoogle?.portada ?? "",

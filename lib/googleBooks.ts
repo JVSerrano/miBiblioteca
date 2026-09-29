@@ -16,6 +16,7 @@ interface GoogleBooksVolumeInfo {
   authors?: string[];
   publisher?: string;
   industryIdentifiers?: GoogleBooksIndustryIdentifier[];
+  language?: string;
   imageLinks?: {
     thumbnail?: string;
   };
@@ -61,6 +62,40 @@ export async function buscarLibroConClave(
     isbn: extraerIsbn(info.industryIdentifiers),
     portada: info.imageLinks?.thumbnail ?? "",
   };
+}
+
+// Busca por título y autor. Entre los resultados prefiere los que empiezan igual
+// que el título buscado y, a igualdad, los que están en español.
+// Devuelve null si ningún resultado tiene un autor que coincida.
+export async function buscarLibroConAutorConClave(
+  titulo: string,
+  autor: string,
+  apiKey: string | undefined
+): Promise<LibroNormalizado | null> {
+  const q = `intitle:"${titulo.replace(/"/g, "")}" inauthor:"${autor.replace(/"/g, "")}"`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=10&key=${apiKey}`;
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Google Books API error: ${res.status}`);
+  }
+
+  const data: GoogleBooksResponse = await res.json();
+  const buscadoAutor = limpiar(autor);
+  const buscadoTitulo = limpiar(titulo);
+  const candidatos = (data.items ?? []).filter((item) =>
+    (item.volumeInfo.authors ?? []).some((a) => limpiar(a).includes(buscadoAutor))
+  );
+
+  const puntos = (info: GoogleBooksVolumeInfo) => {
+    const t = limpiar(info.title ?? "");
+    const porTitulo = t === buscadoTitulo ? 0 : t.startsWith(buscadoTitulo) ? 1 : 4;
+    return porTitulo + (info.language === "es" ? 0 : 3);
+  };
+  const mejor = [...candidatos].sort(
+    (a, b) => puntos(a.volumeInfo) - puntos(b.volumeInfo)
+  )[0];
+  return mejor ? normalizar(mejor.volumeInfo) : null;
 }
 
 function normalizar(info: GoogleBooksVolumeInfo): LibroNormalizado {
