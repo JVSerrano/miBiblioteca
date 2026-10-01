@@ -1,0 +1,9 @@
+# sistema
+.DS_Store
+Thumbs.db
+
+# dependencias y salidas de herramientas de la raíz
+node_modules/
+*.log
+
+# la app (mi-biblio/) y promo/ tienen su propio .gitignore
