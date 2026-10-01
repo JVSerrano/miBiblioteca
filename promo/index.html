@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi biblioteca - vídeo promocional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fondo: #E3DFD3;
+    --ficha: #F7F4EC;
+    --borde: #C9BFA5;
+    --tinta: #2B2A28;
+    --tinta-2: #5B5748;
+    --tinta-3: #9A927C;
+    --burdeos: #8C3B2E;
+    --petroleo: #2F4858;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; background: #1d1c1a; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "IBM Plex Mono", monospace; color: var(--tinta); overflow: hidden; }
+  body.export { background: var(--fondo); }
+  body.export .controles { display: none; }
+
+  #marco { position: relative; flex: none; }
+  #escenario { position: absolute; left: 0; top: 0; width: 1080px; height: 1080px; background: var(--fondo); overflow: hidden; transform-origin: 0 0; }
+
+  .escena { position: absolute; inset: 0; opacity: 0; }
+  .centrado { position: absolute; left: 50%; top: 50%; transform-origin: center; }
+
+  /* --- Escena 1: pila --- */
+  .libro { position: absolute; width: 176px; height: 256px; border: 1px solid rgba(43,42,40,.55); box-shadow: 5px 5px 0 0 rgba(43,42,40,.22); padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; color: var(--ficha); }
+  .libro b { font-family: "Lora", serif; font-weight: 600; font-size: 22px; line-height: 1.15; }
+  .libro i { display: block; height: 3px; width: 44px; background: currentColor; opacity: .55; }
+  .libro.claro { color: var(--tinta); }
+  #pregunta { position: absolute; left: 50%; top: 50%; width: 820px; margin-left: -410px; margin-top: -120px; padding: 46px 50px; background: var(--ficha); border: 1px solid var(--borde); box-shadow: 8px 8px 0 0 var(--borde); }
+  #pregunta p { font-family: "Lora", serif; font-weight: 600; font-size: 76px; line-height: 1.08; }
+  #pregunta::before { content: ""; display: block; width: 100%; border-top: 2px solid rgba(140,59,46,.4); margin-bottom: 26px; }
+
+  /* --- Réplica de la app --- */
+  .app { font-size: 16px; }
+  .cabecera { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid rgba(140,59,46,.4); padding-bottom: 12px; margin-bottom: 20px; }
+  .cabecera h1 { font-family: "Lora", serif; font-weight: 600; font-size: 20px; }
+  .etiqueta { display: block; font-size: 12px; color: var(--tinta-2); margin-bottom: 4px; }
+  .etiqueta.peq { font-size: 10px; color: var(--tinta-3); }
+  .campo { border-bottom: 1px solid var(--borde); padding: 4px 0; font-size: 14px; min-height: 28px; white-space: nowrap; overflow: hidden; }
+  .campo.foco { border-bottom-color: var(--petroleo); }
+  .campo .ph { color: var(--tinta-3); }
+  .caret { display: inline-block; width: 1px; height: 15px; background: var(--tinta); vertical-align: -2px; margin-left: 1px; }
+  .btn { border: 1px solid var(--petroleo); color: var(--petroleo); font-size: 12px; padding: 0 12px; display: flex; align-items: center; }
+  .btn.on { background: var(--petroleo); color: var(--ficha); }
+  .btn-ppal { width: 100%; border: 2px solid var(--petroleo); background: var(--petroleo); color: var(--ficha); padding: 8px 0; text-align: center; font-size: 14px; font-weight: 500; letter-spacing: .025em; }
+  .btn-ppal.on { background: #253945; }
+  .portada { width: 64px; height: 96px; flex: none; border: 1px solid var(--borde); }
+  .portada.vacia { border-style: dashed; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 9px; line-height: 1.2; color: var(--tinta-3); }
+  .portada.cien { background: var(--burdeos); color: var(--ficha); padding: 7px 6px; display: flex; flex-direction: column; justify-content: space-between; }
+  .portada.cien b { font-family: "Lora", serif; font-weight: 600; font-size: 9px; line-height: 1.15; }
+  .portada.cien i { display: block; height: 2px; width: 20px; background: currentColor; opacity: .55; }
+
+  /* --- Ficha (nueva y editar) --- */
+  .ficha { width: 448px; margin: -262px 0 0 -224px; background: var(--ficha); border: 1px solid var(--borde); box-shadow: 4px 4px 0 0 var(--borde); padding: 24px 28px 28px; transform: scale(1.5); }
+  .fila-titulo { position: relative; display: flex; gap: 8px; margin-bottom: 16px; }
+  .fila-titulo .campo { flex: 1; }
+  .resultados { position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; background: var(--ficha); border: 1px solid var(--petroleo); box-shadow: 3px 3px 0 0 var(--borde); z-index: 5; }
+  .res { display: flex; gap: 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--borde); }
+  .res:last-child { border-bottom: 0; }
+  .res.sel { background: var(--fondo); }
+  .res .mini { width: 32px; height: 48px; flex: none; border: 1px solid var(--borde); }
+  .res .t { font-family: "Lora", serif; font-size: 14px; }
+  .res .a { font-size: 11px; color: var(--tinta-2); margin-top: 2px; }
+  .datos { display: flex; gap: 16px; margin-bottom: 16px; }
+  .datos .col { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .ubic { border: 1px solid var(--borde); padding: 12px; margin: 16px 0 24px; }
+  .ubic .par { display: flex; gap: 16px; }
+  .ubic .par > div { flex: 1; }
+  .aviso { margin-top: 12px; text-align: center; font-size: 12px; color: var(--petroleo); min-height: 18px; }
+
+  /* --- Estantería --- */
+  #estanteria { width: 672px; margin: 0; transform: translate(-50%, -50%) scale(1.4); }
+  .cabecera .acciones { display: flex; gap: 8px; }
+  .cabecera .acciones span { border: 1px solid; padding: 4px 8px; font-size: 12px; }
+  .filtros { display: flex; gap: 16px; border: 1px solid var(--borde); background: var(--ficha); padding: 12px; margin-bottom: 24px; }
+  .filtros > div { flex: 1; }
+  .lista { border: 1px solid var(--borde); background: var(--ficha); }
+  .fila { height: 84px; overflow: hidden; border-top: 1px solid var(--borde); }
+  .fila:first-child { border-top: 0; }
+  .fila .dentro { display: flex; align-items: center; gap: 12px; padding: 12px 12px 8px; height: 84px; }
+  .fila .portada { width: 44px; height: 64px; }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .tit { font-family: "Lora", serif; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .sub { display: flex; justify-content: space-between; gap: 8px; margin-top: 2px; }
+  .fila .aut { font-size: 12px; color: var(--tinta-2); }
+  .fila .ubi { font-size: 10px; letter-spacing: .025em; color: var(--petroleo); flex: none; }
+  .fila .acc { display: flex; align-items: center; gap: 8px; flex: none; }
+  .fila .mas { color: var(--tinta-3); font-size: 14px; padding: 0 4px; }
+  .fila .ac { font-size: 10px; padding: 4px 8px; border: 1px solid; }
+  .fila .ac.ed { color: var(--petroleo); border-color: var(--petroleo); }
+  .fila .ac.el { color: var(--burdeos); border-color: var(--burdeos); }
+  .fila .ac.ed.on { background: var(--petroleo); color: var(--ficha); }
+  .fila .ac.el.on { background: var(--burdeos); color: var(--ficha); }
+
+  #velo { position: absolute; inset: 0; background: rgba(43,42,40,.5); display: none; }
+  #dialogo { position: absolute; left: 50%; top: 50%; width: 384px; margin: -80px 0 0 -192px; background: var(--ficha); border: 1px solid var(--borde); box-shadow: 4px 4px 0 0 var(--borde); padding: 20px; transform: scale(1.5); }
+  #dialogo .q { font-family: "Lora", serif; font-weight: 600; font-size: 16px; margin-bottom: 8px; }
+  #dialogo .m { font-size: 14px; color: var(--tinta-2); margin-bottom: 20px; }
+  #dialogo .bt { display: flex; justify-content: flex-end; gap: 8px; }
+  #dialogo .bt span { font-size: 12px; padding: 4px 12px; border: 1px solid var(--borde); color: var(--tinta-2); }
+  #dialogo .bt span.peligro { border-color: var(--burdeos); background: var(--burdeos); color: var(--ficha); }
+  #dialogo .bt span.peligro.on { background: #732E24; }
+
+  /* --- Rótulos y autorrelleno --- */
+  #rotulo { position: absolute; left: 60px; top: 36px; z-index: 20; max-width: 960px; padding: 12px 24px; background: var(--petroleo); color: var(--ficha); box-shadow: 5px 5px 0 0 var(--borde); font-family: "Lora", serif; font-weight: 500; font-size: 34px; line-height: 1.2; opacity: 0; }
+  .auto { background: rgba(47,72,88,var(--a, .2)); box-shadow: inset 0 0 0 1px rgba(47,72,88,.55); }
+  .portada.auto { outline: 2px solid var(--petroleo); }
+  .auto-lab::after { content: "autorrellenado"; margin-left: 8px; font-size: 10px; color: var(--petroleo); font-weight: 500; }
+
+  /* --- Cierre --- */
+  #cierre { position: absolute; left: 120px; right: 120px; top: 50%; margin-top: -190px; }
+  #cierre h2 { font-family: "Lora", serif; font-weight: 600; font-size: 132px; line-height: 1; padding-bottom: 34px; border-bottom: 3px solid rgba(140,59,46,.4); }
+  #cierre .lema { font-family: "Lora", serif; font-weight: 500; font-size: 46px; margin-top: 40px; color: var(--tinta-2); }
+  #cierre .pila { margin-top: 46px; font-size: 26px; color: var(--petroleo); }
+
+  /* --- Controles de vista previa --- */
+  .controles { width: min(1080px, 100vw); display: flex; gap: 14px; align-items: center; padding: 10px 14px; color: #cfc9b8; font-size: 13px; }
+  .controles button { font: inherit; background: none; border: 1px solid #cfc9b8; color: inherit; padding: 4px 12px; cursor: pointer; }
+  .controles input { flex: 1; accent-color: #8C3B2E; }
+</style>
+</head>
+<body>
+<div id="marco"><div id="escenario">
+  <div id="rotulo"></div>
+
+  <!-- 1. Pila -->
+  <section class="escena" id="e1">
+    <div id="pila"></div>
+    <div id="pregunta"><p>¿Dónde dejé ese libro?</p></div>
+  </section>
+
+  <!-- 2. Ficha nueva -->
+  <section class="escena app" id="e2"><div class="centrado ficha" id="ficha-nueva"></div></section>
+
+  <!-- 3. Estantería (dos tramos: filtrar y editar / eliminar) -->
+  <section class="escena app" id="e3">
+    <div class="centrado" id="estanteria">
+      <div class="cabecera">
+        <h1>Mi biblioteca</h1>
+        <div class="acciones">
+          <span style="color:var(--petroleo)">Dictar varios</span>
+          <span style="color:var(--burdeos)">+ Añadir libro</span>
+        </div>
+      </div>
+      <div class="filtros">
+        <div><span class="etiqueta">Título</span><div class="campo"><span class="ph">Buscar por título</span></div></div>
+        <div><span class="etiqueta">Autor</span><div class="campo foco" id="g-autor"></div></div>
+      </div>
+      <div class="lista" id="lista"></div>
+    </div>
+    <div id="velo">
+      <div id="dialogo">
+        <p class="q">¿Eliminar libro?</p>
+        <p class="m">Se eliminará «El amor en los tiempos del cólera» de forma definitiva.</p>
+        <div class="bt"><span>Cancelar</span><span class="peligro" id="d-ok">Eliminar</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Editar ficha -->
+  <section class="escena app" id="e4"><div class="centrado ficha" id="ficha-editar"></div></section>
+
+  <!-- 5. Cierre -->
+  <section class="escena" id="e5">
+    <div id="cierre">
+      <h2>Mi biblioteca</h2>
+      <p class="lema">Cada libro, en su balda.</p>
+      <p class="pila">Claude Code · Next.js · Firebase · Google Books</p>
+    </div>
+  </section>
+
+</div></div>
+
+<div class="controles">
+  <button id="play">Pausa</button>
+  <input id="barra" type="range" min="0" max="42" step="0.01" value="0">
+  <span id="reloj"></span>
+</div>
+
+<script>
+const DURACION = 42;      // duración real; la línea de tiempo interna es T = t + CORTE (se recorta el inicio)
+const CORTE = 2;
+// [escena, inicio, fin]; la estantería aparece dos veces
+const ESCENAS = [ ["e1", 0, 5], ["e2", 5, 17], ["e3", 17, 25], ["e4", 25, 31], ["e3", 31, 39], ["e5", 39, 44] ];
+const FUNDIDO = 0.5;
+
+const cl = (x) => Math.min(1, Math.max(0, x));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const suave = (x) => 1 - Math.pow(1 - x, 3);
+const tecleado = (txt, t, a, b) => txt.slice(0, Math.round(txt.length * seg(t, a, b)));
+const $ = (id) => document.getElementById(id);
+const caret = '<span class="caret"></span>';
+const ph = (s) => `<span class="ph">${s}</span>`;
+
+/* ---- Datos ---- */
+const LIBROS_PILA = [
+  ["Rayuela", "#2F4858", 0], ["Dune", "#8C3B2E", 0], ["Pedro Páramo", "#B8985A", 1], ["El Quijote", "#3A3A36", 0],
+  ["La sombra del viento", "#6A4055", 0], ["Ficciones", "#4F6F6A", 0], ["Persuasión", "#C9BFA5", 1], ["Los detectives salvajes", "#6B6B45", 0],
+  ["Middlemarch", "#8C3B2E", 0], ["El Aleph", "#2F4858", 0], ["Ulises", "#B8985A", 1], ["La Regenta", "#3A3A36", 0],
+  ["Trafalgar", "#4F6F6A", 0], ["Solaris", "#6A4055", 0], ["Nada", "#C9BFA5", 1], ["Kim", "#6B6B45", 0]
+];
+const POS = [
+  [ 30, 640, -8], [200, 700, 6], [380, 660, -4], [560, 720, 9], [740, 650, -6], [900, 690, 5],
+  [ 90, 800, 7], [280, 820, -9], [470, 790, 4], [660, 830, -5], [830, 800, 8],
+  [-20, 460, 12], [930, 470, -10], [ 60, 90, -12], [880, 60, 9], [400, 20, 5]
+];
+const FILAS = [
+  ["Cien años de soledad", "Gabriel García Márquez", "#8C3B2E", true],
+  ["Rayuela", "Julio Cortázar", "#2F4858", false],
+  ["Dune", "Frank Herbert", "#B8985A", false],
+  ["El amor en los tiempos del cólera", "Gabriel García Márquez", "#6A4055", true],
+  ["Pedro Páramo", "Juan Rulfo", "#4F6F6A", false]
+];
+const UBIC = ["Balda 2 · Columna 1", "Balda 1 · Columna 3", "Balda 3 · Columna 2", "Balda 2 · Columna 2", "Balda 1 · Columna 1"];
+
+/* ---- Construcción ---- */
+LIBROS_PILA.forEach(([tit, col, claro]) => {
+  const d = document.createElement("div");
+  d.className = "libro" + (claro ? " claro" : "");
+  d.style.background = col;
+  d.innerHTML = `<b>${tit}</b><i></i>`;
+  $("pila").appendChild(d);
+});
+const libros = [...document.querySelectorAll(".libro")];
+
+function fichaHTML(p, etiqueta, boton, conResultados) {
+  return `
+    <div class="cabecera">
+      <h1>Mi biblioteca</h1>
+      <span style="font-size:10px;letter-spacing:.025em;color:rgba(140,59,46,.7)">${etiqueta}</span>
+    </div>
+    <span class="etiqueta">Título</span>
+    <div class="fila-titulo">
+      <div class="campo foco" id="${p}-titulo"></div>
+      <div class="btn" id="${p}-buscar">Buscar</div>
+      ${conResultados ? `<div class="resultados" id="${p}-resultados">
+        <div class="res" id="${p}-r1"><div class="mini" style="background:var(--burdeos)"></div>
+          <div><div class="t">Cien años de soledad</div><div class="a">Gabriel García Márquez</div></div></div>
+        <div class="res"><div class="mini" style="background:var(--petroleo)"></div>
+          <div><div class="t">Cien años de soledad. Guía de lectura</div><div class="a">Varios autores</div></div></div>
+      </div>` : ""}
+    </div>
+    <div class="datos">
+      <div class="portada vacia" id="${p}-portada"></div>
+      <div class="col">
+        <div><span class="etiqueta" id="${p}-l-autor">Autor</span><div class="campo" id="${p}-autor"></div></div>
+        <div><span class="etiqueta" id="${p}-l-editorial">Editorial</span><div class="campo" id="${p}-editorial"></div></div>
+      </div>
+    </div>
+    <div><span class="etiqueta" id="${p}-l-isbn">ISBN</span><div class="campo" id="${p}-isbn"></div></div>
+    <div class="ubic">
+      <span class="etiqueta" style="margin-bottom:8px">Ubicación en la estantería</span>
+      <div class="par">
+        <div><span class="etiqueta peq">Balda</span><div class="campo" id="${p}-balda"></div></div>
+        <div><span class="etiqueta peq">Columna</span><div class="campo" id="${p}-columna"></div></div>
+      </div>
+    </div>
+    <div class="btn-ppal" id="${p}-guardar">${boton}</div>
+    <div class="aviso" id="${p}-aviso"></div>`;
+}
+$("ficha-nueva").innerHTML = fichaHTML("f", "ficha nueva", "Guardar en la balda", true);
+$("ficha-editar").innerHTML = fichaHTML("h", "editar ficha", "Guardar cambios", false);
+
+FILAS.forEach(([tit, aut, col, garcia], i) => {
+  const f = document.createElement("div");
+  f.className = "fila";
+  f.dataset.garcia = garcia ? "1" : "0";
+  f.innerHTML = `<div class="dentro"><div class="portada" style="background:${col}"></div>
+    <div class="txt"><div class="tit">${tit}</div><div class="sub"><span class="aut">${aut}</span><span class="ubi"></span></div></div>
+    <div class="acc"></div></div>`;
+  $("lista").appendChild(f);
+});
+const filas = [...document.querySelectorAll(".fila")];
+
+function portadaCien(el, con) {
+  el.className = "portada " + (con ? "cien" : "vacia");
+  el.innerHTML = con ? "<b>Cien años de soledad</b><i></i>" : "<span>sin portada</span>";
+}
+
+/* ---- Render determinista: todo depende solo de t ---- */
+function render(t) {
+  // Fundido cruzado entre escenas
+  const op = {};
+  ESCENAS.forEach(([id, ini, fin], i) => {
+    const entra = i === 0 ? 1 : seg(t, ini, ini + FUNDIDO);
+    const sale = i === ESCENAS.length - 1 ? 0 : seg(t, fin - FUNDIDO, fin);
+    op[id] = Math.max(op[id] || 0, Math.min(entra, 1 - sale));
+  });
+  Object.keys(op).forEach((id) => { $(id).style.opacity = op[id]; });
+
+  // 1. Pila (3 s reales)
+  const s = t - CORTE;
+  libros.forEach((el, i) => {
+    const [x, y, giro] = POS[i];
+    const p = suave(seg(s, 0.05 + i * 0.06, 0.65 + i * 0.06));
+    el.style.left = x + "px";
+    el.style.top = (y - (1 - p) * 900) + "px";
+    el.style.transform = `rotate(${giro * (0.4 + 0.6 * p)}deg)`;
+  });
+  const q = suave(seg(s, 1.3, 1.9));
+  $("pregunta").style.opacity = q;
+  $("pregunta").style.transform = `translateY(${(1 - q) * 14}px)`;
+
+  // 2. Ficha nueva (5-17 s): tiempo interno u en el ritmo original, estirado 12/7
+  const u = 4 + (t - 5) * 7 / 12;
+  const TIT = "Cien años de soledad";
+  $("f-titulo").innerHTML = u < 4.3 ? ph("Ej. Cien años de soledad") : tecleado(TIT, u, 4.3, 5.5) + (u < 5.6 ? caret : "");
+  $("f-buscar").classList.toggle("on", u >= 5.6 && u < 5.85);
+  $("f-resultados").style.display = (u >= 5.85 && u < 6.9) ? "block" : "none";
+  $("f-r1").classList.toggle("sel", u >= 6.4);
+  // Autorrelleno: todo aparece a la vez y se resalta; la ubicación sigue siendo manual
+  const lleno = u >= 6.95;
+  $("f-autor").textContent = lleno ? "Gabriel García Márquez" : "";
+  $("f-editorial").textContent = lleno ? "Editorial Sudamericana" : "";
+  $("f-isbn").textContent = lleno ? "978-0-06-088328-7" : "";
+  portadaCien($("f-portada"), lleno);
+  const resalta = u >= 6.95 && u < 9.6;
+  const alfa = (0.1 + 0.16 * (1 - seg(u, 6.95, 8.0))) * (1 - seg(u, 9.0, 9.6));
+  ["f-autor", "f-editorial", "f-isbn", "f-portada"].forEach((id) => {
+    $(id).classList.toggle("auto", resalta);
+    $(id).style.setProperty("--a", alfa.toFixed(3));
+  });
+  ["f-l-autor", "f-l-editorial", "f-l-isbn"].forEach((id) => $(id).classList.toggle("auto-lab", resalta));
+  $("f-balda").textContent = u >= 8.4 ? "2" : "";
+  $("f-columna").textContent = u >= 8.9 ? "1" : "";
+  $("f-guardar").classList.toggle("on", u >= 9.5);
+  $("f-guardar").textContent = (u >= 9.7 && u < 10.0) ? "Guardando…" : "Guardar en la balda";
+  $("f-aviso").textContent = u >= 10.0 ? "Libro archivado. Ya puedes dar de alta el siguiente." : "";
+
+  // 3. Estantería (17-25 s y 31-39 s)
+  const segunda = t >= 28;
+  const g = $("g-autor");
+  if (segunda) g.textContent = "garcía";
+  else g.innerHTML = t < 17.8 ? ph("Buscar por autor") : tecleado("garcía", t, 17.8, 19.6) + (t < 20.0 ? caret : "");
+  const c = segunda ? 1 : suave(seg(t, 20.0, 20.8));
+  const borrado = suave(seg(t, 36.4, 37.0));
+  const editada = t >= 29.8;
+  filas.forEach((f, i) => {
+    const oculta = f.dataset.garcia === "0";
+    let h = oculta ? 84 * (1 - c) : 84;
+    if (i === 3) h = 84 * (1 - borrado);
+    f.style.height = h + "px";
+    f.style.opacity = oculta ? 1 - c : (i === 3 ? 1 - borrado : 1);
+    f.style.borderTopWidth = h < 1 ? "0" : "1px";
+    f.querySelector(".ubi").textContent = i === 0 && editada ? "Balda 2 · Columna 3" : UBIC[i];
+  });
+  // Pulsación larga: fila 1 (editar) y fila 4 (eliminar)
+  const acc = (fila, visible, edOn, elOn) => {
+    fila.querySelector(".acc").innerHTML = visible
+      ? `<span class="ac ed${edOn ? " on" : ""}">Editar</span><span class="ac el${elOn ? " on" : ""}">Eliminar</span>`
+      : '<span class="mas">⋮</span>';
+  };
+  acc(filas[0], t >= 21.8 && t < 25, t >= 23.4, false);
+  acc(filas[3], t >= 32.4 && t < 36.4, false, t >= 34.0);
+  acc(filas[1], false); acc(filas[2], false); acc(filas[4], false);
+  $("velo").style.display = (t >= 34.4 && t < 36.4) ? "block" : "none";
+  $("d-ok").classList.toggle("on", t >= 36.0);
+  $("d-ok").textContent = t >= 36.0 ? "Eliminando…" : "Eliminar";
+
+  // 4. Editar ficha (25-31 s)
+  $("h-titulo").textContent = "Cien años de soledad";
+  $("h-autor").textContent = "Gabriel García Márquez";
+  $("h-editorial").textContent = "Editorial Sudamericana";
+  $("h-isbn").textContent = "978-0-06-088328-7";
+  portadaCien($("h-portada"), true);
+  $("h-balda").textContent = "2";
+  $("h-columna").innerHTML = t < 27.4 ? "1" : (t < 28.0 ? caret : "3" + (t < 28.6 ? caret : ""));
+  $("h-guardar").classList.toggle("on", t >= 29.2);
+  $("h-guardar").textContent = (t >= 29.6 && t < 30.0) ? "Guardando…" : "Guardar cambios";
+
+  // Rótulos
+  const ROTULOS = [
+    [5.4, 7.6, "Para añadir un libro solo necesitas el título"],
+    [7.6, 10.0, "Busca en la API de Google Books"],
+    [10.0, 13.3, "Y se autorrellena: portada, autor, editorial e ISBN"],
+    [13.3, 16.6, "Tú solo eliges dónde va: balda y columna"],
+    [17.6, 21.3, "Filtra tu biblioteca por título o autor"],
+    [21.3, 24.6, "Editar y eliminar libros"],
+    [25.5, 30.6, "Corrige cualquier dato de la ficha"],
+    [32.0, 38.4, "Eliminar, siempre con confirmación"]
+  ];
+  const r = ROTULOS.find(([ini, fin]) => t >= ini && t < fin);
+  if (r) {
+    $("rotulo").textContent = r[2];
+    $("rotulo").style.opacity = Math.min(seg(t, r[0], r[0] + 0.3), 1 - seg(t, r[1] - 0.3, r[1]));
+  } else $("rotulo").style.opacity = 0;
+
+  // 5. Cierre (39-44 s)
+  const a = (ini) => suave(seg(t, ini, ini + 0.6));
+  const cie = $("cierre").children;
+  [39.6, 40.6, 41.6].forEach((ini, i) => {
+    cie[i].style.opacity = a(ini);
+    cie[i].style.transform = i === 0 ? "none" : `translateY(${(1 - a(ini)) * 12}px)`;
+  });
+}
+
+/* ---- Reproducción ---- */
+let t = 0, jugando = true, previo = null;
+function poner(nuevo) {
+  t = Math.max(0, Math.min(DURACION - 0.001, nuevo));
+  render(t + CORTE);
+  $("barra").value = t;
+  $("reloj").textContent = t.toFixed(1) + " / " + DURACION.toFixed(1) + " s";
+}
+function bucle(ahora) {
+  if (jugando) {
+    if (previo !== null) {
+      let n = t + (ahora - previo) / 1000;
+      if (n >= DURACION) n = 0;
+      poner(n);
+    }
+    previo = ahora;
+  } else previo = null;
+  requestAnimationFrame(bucle);
+}
+function ajustar() {
+  const exp = document.body.classList.contains("export");
+  const alto = window.innerHeight - (exp ? 0 : 56);
+  const lado = Math.min(window.innerWidth, alto, 1080);
+  $("marco").style.width = $("marco").style.height = lado + "px";
+  $("escenario").style.transform = `scale(${exp ? 1 : lado / 1080})`;
+}
+
+const params = new URLSearchParams(location.search);
+if (params.has("export")) document.body.classList.add("export");
+window.addEventListener("resize", ajustar);
+$("play").onclick = () => { jugando = !jugando; $("play").textContent = jugando ? "Pausa" : "Reproducir"; };
+$("barra").oninput = (e) => { jugando = false; $("play").textContent = "Reproducir"; poner(parseFloat(e.target.value)); };
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") { e.preventDefault(); $("play").click(); }
+  if (e.code === "ArrowRight") poner(t + 0.5);
+  if (e.code === "ArrowLeft") poner(t - 0.5);
+});
+window.poner = poner; // para exportar fotograma a fotograma
+ajustar();
+document.fonts.ready.then(() => {
+  if (params.has("t")) { jugando = false; $("play").textContent = "Reproducir"; poner(parseFloat(params.get("t"))); }
+  else poner(0);
+  requestAnimationFrame(bucle);
+});
+</script>
+</body>
+</html>
