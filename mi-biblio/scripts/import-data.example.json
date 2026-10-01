@@ -1,0 +1,5 @@
+[
+  { "titulo": "Cien años de soledad", "autor": "Gabriel García Márquez", "balda": 1, "columna": 1 },
+  { "titulo": "1984", "autor": "George Orwell", "balda": 1, "columna": 2 },
+  { "titulo": "El nombre del viento", "balda": 2, "columna": 1 }
+]
