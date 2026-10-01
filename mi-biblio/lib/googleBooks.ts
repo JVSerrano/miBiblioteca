@@ -38,23 +38,25 @@ function extraerIsbn(identifiers?: GoogleBooksIndustryIdentifier[]): string {
   return isbn10?.identifier ?? "";
 }
 
-export async function buscarLibroConClave(
-  query: string,
-  apiKey: string | undefined
-): Promise<LibroNormalizado | null> {
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&key=${apiKey}`;
+const API = "https://www.googleapis.com/books/v1/volumes";
 
-  const res = await fetch(url);
+async function consultar(
+  q: string,
+  apiKey: string | undefined,
+  maxResults?: number
+): Promise<GoogleBooksItem[]> {
+  const params = new URLSearchParams({ q, key: String(apiKey) });
+  if (maxResults) params.set("maxResults", String(maxResults));
+
+  const res = await fetch(`${API}?${params}`);
   if (!res.ok) {
     throw new Error(`Google Books API error: ${res.status}`);
   }
-
   const data: GoogleBooksResponse = await res.json();
-  const item = data.items?.[0];
-  if (!item) return null;
+  return data.items ?? [];
+}
 
-  const info = item.volumeInfo;
-
+function normalizar(info: GoogleBooksVolumeInfo): LibroNormalizado {
   return {
     titulo: info.title ?? "",
     autor: info.authors?.join(", ") ?? "",
@@ -62,6 +64,16 @@ export async function buscarLibroConClave(
     isbn: extraerIsbn(info.industryIdentifiers),
     portada: info.imageLinks?.thumbnail ?? "",
   };
+}
+
+const sinComillas = (texto: string) => texto.replace(/"/g, "").trim();
+
+export async function buscarLibroConClave(
+  query: string,
+  apiKey: string | undefined
+): Promise<LibroNormalizado | null> {
+  const [item] = await consultar(query, apiKey);
+  return item ? normalizar(item.volumeInfo) : null;
 }
 
 // Busca por título y autor. Entre los resultados prefiere los que empiezan igual
@@ -72,18 +84,12 @@ export async function buscarLibroConAutorConClave(
   autor: string,
   apiKey: string | undefined
 ): Promise<LibroNormalizado | null> {
-  const q = `intitle:"${titulo.replace(/"/g, "")}" inauthor:"${autor.replace(/"/g, "")}"`;
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=10&key=${apiKey}`;
+  const q = `intitle:"${sinComillas(titulo)}" inauthor:"${sinComillas(autor)}"`;
+  const items = await consultar(q, apiKey, 10);
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Google Books API error: ${res.status}`);
-  }
-
-  const data: GoogleBooksResponse = await res.json();
   const buscadoAutor = limpiar(autor);
   const buscadoTitulo = limpiar(titulo);
-  const candidatos = (data.items ?? []).filter((item) =>
+  const candidatos = items.filter((item) =>
     (item.volumeInfo.authors ?? []).some((a) => limpiar(a).includes(buscadoAutor))
   );
 
@@ -98,31 +104,16 @@ export async function buscarLibroConAutorConClave(
   return mejor ? normalizar(mejor.volumeInfo) : null;
 }
 
-function normalizar(info: GoogleBooksVolumeInfo): LibroNormalizado {
-  return {
-    titulo: info.title ?? "",
-    autor: info.authors?.join(", ") ?? "",
-    editorial: info.publisher ?? "",
-    isbn: extraerIsbn(info.industryIdentifiers),
-    portada: info.imageLinks?.thumbnail ?? "",
-  };
-}
-
 export async function buscarLibros(
   query: string,
   max = 5
 ): Promise<LibroNormalizado[]> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY;
-  const q = `intitle:"${query.replace(/"/g, "").trim()}"`;
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=${max}&key=${apiKey}`;
-
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Google Books API error: ${res.status}`);
-  }
-
-  const data: GoogleBooksResponse = await res.json();
-  const libros = (data.items ?? []).map((item) => normalizar(item.volumeInfo));
+  const items = await consultar(
+    `intitle:"${sinComillas(query)}"`,
+    process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY,
+    max
+  );
+  const libros = items.map((item) => normalizar(item.volumeInfo));
   return ordenarPorCoincidencia(libros, query).slice(0, max);
 }
 

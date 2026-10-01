@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Lora, IBM_Plex_Mono } from "next/font/google";
 import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
-const lora = Lora({ subsets: ["latin"], weight: ["500", "600"] });
-const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"] });
+import { lora } from "@/lib/fuentes";
+import { textoUbicacion } from "@/lib/libros";
+import { Pagina, Mensaje } from "./componentes/Pagina";
+import { Portada } from "./componentes/Portada";
+import { DialogoEliminar } from "./componentes/DialogoEliminar";
 
 type Libro = {
   id: string;
@@ -29,11 +30,6 @@ function useDebounced(valor: string, retrasoMs: number) {
   }, [valor, retrasoMs]);
 
   return debounced;
-}
-
-function ubicacion(balda: number | null, columna: number | null) {
-  if (balda === null && columna === null) return "sin colocar";
-  return `Balda ${balda ?? "?"} · Columna ${columna ?? "?"}`;
 }
 
 export default function ListadoLibrosPage() {
@@ -128,12 +124,10 @@ export default function ListadoLibrosPage() {
   });
 
   return (
-    <div
-      className={`${plexMono.className} flex flex-1 justify-center bg-[#E3DFD3] px-4 py-12`}
-    >
+    <Pagina centrarVertical={false}>
       <div className="w-full max-w-2xl">
-        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3 border-b-2 border-[#8C3B2E]/40 pb-3">
-          <h1 className={`${lora.className} text-xl font-semibold text-[#2B2A28]`}>
+        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3 border-b-2 border-rojo/40 pb-3">
+          <h1 className={`${lora.className} text-xl font-semibold text-tinta`}>
             <button
               type="button"
               onClick={() => window.location.reload()}
@@ -145,22 +139,22 @@ export default function ListadoLibrosPage() {
           <div className="flex gap-2">
             <Link
               href="/volcado"
-              className="shrink-0 border border-[#2F4858] px-2 py-1 text-xs text-[#2F4858] transition-colors hover:bg-[#2F4858] hover:text-[#F7F4EC]"
+              className="shrink-0 border border-azul px-2 py-1 text-xs text-azul transition-colors hover:bg-azul hover:text-papel"
             >
               Dictar varios
             </Link>
             <Link
               href="/nuevo"
-              className="shrink-0 border border-[#8C3B2E] px-2 py-1 text-xs text-[#8C3B2E] transition-colors hover:bg-[#8C3B2E] hover:text-[#F7F4EC]"
+              className="shrink-0 border border-rojo px-2 py-1 text-xs text-rojo transition-colors hover:bg-rojo hover:text-papel"
             >
               + Añadir libro
             </Link>
           </div>
         </div>
 
-        <div className="mb-6 flex gap-4 border border-[#C9BFA5] bg-[#F7F4EC] p-3">
+        <div className="mb-6 flex gap-4 border border-borde bg-papel p-3">
           <div className="flex-1">
-            <label className="mb-1 block text-xs text-[#5B5748]" htmlFor="filtro-titulo">
+            <label className="mb-1 block text-xs text-tinta-suave" htmlFor="filtro-titulo">
               Título
             </label>
             <input
@@ -169,11 +163,11 @@ export default function ListadoLibrosPage() {
               value={filtroTitulo}
               onChange={(e) => setFiltroTitulo(e.target.value)}
               placeholder="Buscar por título"
-              className="w-full border-b border-[#C9BFA5] bg-transparent py-1 text-sm text-[#2B2A28] outline-none focus:border-[#2F4858]"
+              className="w-full border-b border-borde bg-transparent py-1 text-sm text-tinta outline-none focus:border-azul"
             />
           </div>
           <div className="flex-1">
-            <label className="mb-1 block text-xs text-[#5B5748]" htmlFor="filtro-autor">
+            <label className="mb-1 block text-xs text-tinta-suave" htmlFor="filtro-autor">
               Autor
             </label>
             <input
@@ -182,21 +176,21 @@ export default function ListadoLibrosPage() {
               value={filtroAutor}
               onChange={(e) => setFiltroAutor(e.target.value)}
               placeholder="Buscar por autor"
-              className="w-full border-b border-[#C9BFA5] bg-transparent py-1 text-sm text-[#2B2A28] outline-none focus:border-[#2F4858]"
+              className="w-full border-b border-borde bg-transparent py-1 text-sm text-tinta outline-none focus:border-azul"
             />
           </div>
         </div>
 
         {estadoCarga === "cargando" && (
-          <p className="text-center text-xs text-[#9A927C]">Cargando la estantería…</p>
+          <p className="text-center"><Mensaje>Cargando la estantería…</Mensaje></p>
         )}
         {estadoCarga === "error" && (
-          <p className="text-center text-xs text-[#8C3B2E]">
+          <p className="text-center text-xs text-rojo">
             No se pudo cargar la biblioteca. Inténtalo de nuevo más tarde.
           </p>
         )}
         {estadoCarga === "listo" && librosFiltrados.length === 0 && (
-          <p className="text-center text-xs text-[#9A927C]">
+          <p className="text-center text-xs text-apagado">
             {libros.length === 0
               ? "Todavía no hay libros dados de alta."
               : "Ningún libro coincide con el filtro."}
@@ -204,7 +198,7 @@ export default function ListadoLibrosPage() {
         )}
 
         {estadoCarga === "listo" && librosFiltrados.length > 0 && (
-          <ul className="divide-y divide-[#C9BFA5] border border-[#C9BFA5] bg-[#F7F4EC]">
+          <ul className="divide-y divide-borde border border-borde bg-papel">
             {librosFiltrados.map((libro) => {
               const accionesVisibles = filaActiva === libro.id;
               return (
@@ -220,26 +214,15 @@ export default function ListadoLibrosPage() {
                   }}
                   className="relative flex items-center gap-3 px-3 pb-2 pt-3"
                 >
-                  {libro.portada ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={libro.portada}
-                      alt=""
-                      className="h-16 w-11 shrink-0 border border-[#C9BFA5] object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-11 shrink-0 items-center justify-center border border-dashed border-[#C9BFA5] text-center text-[8px] leading-tight text-[#9A927C]">
-                      sin portada
-                    </div>
-                  )}
+                  <Portada src={libro.portada} tamano="media" />
                   <div className="min-w-0 flex-1">
-                    <p className={`${lora.className} truncate text-sm font-semibold text-[#2B2A28]`}>
+                    <p className={`${lora.className} truncate text-sm font-semibold text-tinta`}>
                       {libro.titulo || "Sin título"}
                     </p>
                     <div className="mt-0.5 flex items-baseline justify-between gap-2">
-                      <p className="min-w-0 truncate text-xs text-[#5B5748]">{libro.autor || "Autor desconocido"}</p>
-                      <span className="shrink-0 text-[10px] tracking-wide text-[#2F4858]">
-                        {ubicacion(libro.balda, libro.columna)}
+                      <p className="min-w-0 truncate text-xs text-tinta-suave">{libro.autor || "Autor desconocido"}</p>
+                      <span className="shrink-0 text-[10px] tracking-wide text-azul">
+                        {textoUbicacion(libro.balda, libro.columna)}
                       </span>
                     </div>
                   </div>
@@ -248,14 +231,14 @@ export default function ListadoLibrosPage() {
                   <div className="flex shrink-0 items-center gap-2">
                     <Link
                       href={`/editar?id=${libro.id}`}
-                      className="border border-[#2F4858] px-2 py-1 text-[10px] text-[#2F4858] transition-colors hover:bg-[#2F4858] hover:text-[#F7F4EC]"
+                      className="border border-azul px-2 py-1 text-[10px] text-azul transition-colors hover:bg-azul hover:text-papel"
                     >
                       Editar
                     </Link>
                     <button
                       type="button"
                       onClick={() => setLibroAEliminar(libro)}
-                      className="border border-[#8C3B2E] px-2 py-1 text-[10px] text-[#8C3B2E] transition-colors hover:bg-[#8C3B2E] hover:text-[#F7F4EC]"
+                      className="border border-rojo px-2 py-1 text-[10px] text-rojo transition-colors hover:bg-rojo hover:text-papel"
                     >
                       Eliminar
                     </button>
@@ -265,8 +248,7 @@ export default function ListadoLibrosPage() {
                     type="button"
                     onClick={() => setFilaActiva(libro.id)}
                     aria-label="Más acciones"
-                    className="shrink-0 px-1 text-sm text-[#9A927C] transition-colors hover:text-[#2B2A28]" 
-                    style = {{cursor: "pointer"}}
+                    className="shrink-0 cursor-pointer px-1 text-sm text-apagado transition-colors hover:text-tinta"
                   >
                     ⋮
                   </button>
@@ -279,35 +261,13 @@ export default function ListadoLibrosPage() {
       </div>
 
       {libroAEliminar && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-[#2B2A28]/50 px-4">
-          <div className="w-full max-w-sm border border-[#C9BFA5] bg-[#F7F4EC] p-5 shadow-[4px_4px_0_0_#C9BFA5]">
-            <p className={`${lora.className} mb-2 text-base font-semibold text-[#2B2A28]`}>
-              ¿Eliminar libro?
-            </p>
-            <p className="mb-5 text-sm text-[#5B5748]">
-              Se eliminará «{libroAEliminar.titulo || "Sin título"}» de forma definitiva.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setLibroAEliminar(null)}
-                disabled={borrando}
-                className="border border-[#C9BFA5] px-3 py-1 text-xs text-[#5B5748] transition-colors hover:bg-[#C9BFA5]/30 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={confirmarEliminar}
-                disabled={borrando}
-                className="border border-[#8C3B2E] bg-[#8C3B2E] px-3 py-1 text-xs text-[#F7F4EC] transition-colors hover:bg-[#732E24] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {borrando ? "Eliminando…" : "Eliminar"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DialogoEliminar
+          titulo={libroAEliminar.titulo}
+          borrando={borrando}
+          onCancelar={() => setLibroAEliminar(null)}
+          onConfirmar={confirmarEliminar}
+        />
       )}
-    </div>
+    </Pagina>
   );
 }
